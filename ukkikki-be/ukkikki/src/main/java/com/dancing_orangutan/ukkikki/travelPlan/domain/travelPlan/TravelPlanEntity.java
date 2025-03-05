@@ -20,10 +20,25 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "travel_plans")
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
+@NamedEntityGraph(
+		name = "travelPlanWithCitiesAndMembers",
+		attributeNodes = {
+				@NamedAttributeNode("arrivalCity"),
+				@NamedAttributeNode("departureCity"),
+				@NamedAttributeNode("memberTravelPlans"),
+				@NamedAttributeNode("travelPlanKeywords")
+		}
+)
+@Table(
+		name = "travel_plans",
+		indexes = {
+				@Index(name = "idx_travel_plans_planning_status", columnList = "planning_status"),
+		}
+)
 public class TravelPlanEntity {
 
 	@Id
@@ -173,5 +188,4 @@ public class TravelPlanEntity {
 				.findFirst()
 				.orElseThrow(() -> new ApiException(ErrorCode.MEMBER_TRAVEL_PLAN_NOT_FOUND));
 	}
-
 }
