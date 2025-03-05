@@ -10,6 +10,9 @@ import com.dancing_orangutan.ukkikki.travelPlan.domain.travelPlanKeyword.QTravel
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Component;
 public class QueryDslTravelPlanRepository {
 
 	private final JPAQueryFactory queryFactory;
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	public List<TravelPlanEntity> searchTravelPlan(
 			SearchTravelPlanQuery query
@@ -57,7 +62,7 @@ public class QueryDslTravelPlanRepository {
 		BooleanBuilder booleanBuilder = new BooleanBuilder();
 
 		// 입찰 중인 여행 계획만 조회
-		booleanBuilder.and(travelPlan.planningStatus.eq(PlanningStatus.BIDDING));
+		booleanBuilder.and(travelPlan.planningStatus.eq(PlanningStatus.CONFIRMED));
 
 		// 해당 여행사가 제안서를 작성하지 않은 TravelPlan만 조회
 		booleanBuilder.and(
@@ -69,11 +74,16 @@ public class QueryDslTravelPlanRepository {
 						.notExists()
 		);
 
-		return queryFactory
+		// EntityGraph를 사용해 연관 엔티티를 한 번에 로드
+		EntityGraph<?> entityGraph = entityManager.getEntityGraph("travelPlanWithCitiesAndMembers");
+		List<TravelPlanEntity> plans = queryFactory
 				.selectFrom(travelPlan)
 				.where(booleanBuilder)
 				.distinct()
+				.setHint("jakarta.persistence.fetchgraph", entityGraph) // 변경된 부분
 				.fetch();
+
+		return plans;
 	}
 
 
