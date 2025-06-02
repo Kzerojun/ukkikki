@@ -1,4 +1,4 @@
-# 2. 여행 협업 플랫폼 - Ukkikki
+# 여행 협업 플랫폼 - Ukkikki
 
 ![Image](https://github.com/user-attachments/assets/51514421-6649-4faa-8873-c60602d01a8e)
 
@@ -68,9 +68,9 @@
 - **적용 기법**: `@EntityGraph`와 QueryDSL 조합으로 필요한 연관 데이터를 한 번에 조회
 - **개선 코드**:
 
-![image.png](attachment:56f16713-7380-4ce2-a3d7-d2ea03652a75:image.png)
+![Image](https://github.com/user-attachments/assets/0b9b3659-c58f-45d9-a184-12f971c19836)
 
-![image.png](attachment:cea83fbe-5a13-41dd-8e2d-626b0d2634b1:image.png)
+![Image](https://github.com/user-attachments/assets/6d0e294e-c77d-4e1b-a264-ff0eb621e574)
 
 - **결과**: 3817ms → 3313ms (**504ms 단축, 13% 성능 향상**)
 - **쿼리 변화**:
@@ -82,7 +82,7 @@
 - **문제 식별**: `WHERE planning_status = 'CONFIRMED'` 조건에서 풀 테이블 스캔 발생
 - **적용 기법**: 조회 조건에 맞는 인덱스 설계
 - 
-![image.png](attachment:904d0aff-9354-4344-a503-1526b5cadf3e:image.png)
+![Image](https://github.com/user-attachments/assets/be142575-50e1-4f5e-82db-3be66f501cd1)
 
 - **결과**: 3313ms → 247ms (**3066ms 단축, 92% 성능 향상**)
 
@@ -109,9 +109,8 @@
     - **1. Repository 메서드의 복잡성**
     - **2. 쿼리 작성 시 불편함**
     
-![image.png](attachment:a7cc1cf0-1011-495c-929a-f37b52b3db8d:image.png)
-
-![image.png](attachment:76b24438-61f3-49eb-b1fe-bed64ad8c7cd:image.png)
+![Image](https://github.com/user-attachments/assets/0360792b-e74f-41d3-a008-3ffca58146f8)
+![Image](https://github.com/user-attachments/assets/0b91ce83-c58a-4bc0-aa3b-5d20d7015acf)
     
 - **개선과정**
     - **복합키의 한계점 분석**:
@@ -122,9 +121,8 @@
         - JPA 표준 패턴 (@Id + @GeneratedValue)
         - 단일 컬럼 인덱스의 성능 최적화
         - 다른 엔티티에서 참조 시 단순함
-- **개선 코드**
 
-![image.png](attachment:7fbaca00-86bb-4f41-9c89-3df5643efe45:image.png)
+[블로그 링크: "복합키를 사용하지않고 대리키를 사용하는 이유"](https://gahacman.tistory.com/33)
 
 ## 기술적 고민
 
