@@ -1,70 +1,152 @@
-# Getting Started with Create React App
+# 2. 여행 협업 플랫폼 - Ukkikki
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![image 44.png](attachment:8253ca2b-4c5c-42c2-9e51-0b0785c2340b:image_44.png)
 
-## Available Scripts
+## 프로젝트 간단 소개
 
-In the project directory, you can run:
+여행자들이 **함께 떠나는 여행**을 위한 협업 플랫폼
 
-### `yarn start`
+여행 계획 수립부터 실시간 채팅, 장소 추천까지 **원스톱 여행 서비스**를 제공하는 웹 애플리케이션
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 역할 및 담당 업무
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **총 6인** 팀 프로젝트 (프론트엔드 3명 / 백엔드 3명)
+- **백엔드 개발자** 역할 담당
+- **여행 계획 및 실시간 채팅 도메인** 백엔드 개발 전담
+    - 여행 계획 생성, 수정, 참여 및 상태 관리 로직 구현
+    - WebSocket 기반 실시간 채팅 시스템 구축
+    - 여행 계획별 채팅방 및 액션 알림 시스템 개발
+- **이벤트 기반 아키텍처** 구축으로 도메인 간 느슨한 결합 구현
+- **Layered Architecture** 패턴으로 관심사 분리 및 유지보수성 향상
 
-### `yarn test`
+## 기술 스택
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+`Java` `Spring Boot` `Spring Data JPA` `MongoDB` `WebSocket(STOMP)`  `MySQL` `QueryDSL`
 
-### `yarn build`
+## 아키텍처
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+![image.png](attachment:3cf021ec-0450-4507-8741-186e7cedcc4a:image.png)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 주요 기능 구현
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. 여행 계획 관리 시스템
 
-### `yarn eject`
+- **계층별 책임 분리**
+    - Domain Layer: 비즈니스 로직과 규칙 캡슐화
+    - Application Layer: 유스케이스 조합 및 트랜잭션 관리
+    - Presentation Layer: 요청/응답 처리 및 인증
+- **도메인 모델 설계**
+    - TravelPlan, MemberTravelPlan, TravelPlanKeyword 간의 복잡한 연관관계 관리
+    - 여행 계획 상태별 비즈니스 로직 구현(진행중→입찰중→예약중→확정)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 2. 실시간 소통 시스템
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **WebSocket(STOMP) 기반 실시간 채팅**
+    - 여행 계획별 독립적인 채팅방 구성
+    - MongoDB를 활용한 채팅 메시지 영구 저장 및 페이징 처리
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 3. 이벤트 기반 아키텍처
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **도메인 이벤트 활용**
+    - 여행 계획 생성 시 자동 호스트 참여 처리
+    - 마감시간 도달 시 자동 상태 변경 스케줄링
+- **Spring Event 시스템** 활용으로 도메인 간 결합도 최소화
 
-## Learn More
+## 세부 기능 구현 및 문제 해결
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 1. 대용량 데이터 쿼리 성능 최적화 - **3817ms → 247ms (93% 성능 향상)**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **문제 상황**
+1000만 개의 가상 여행 계획 데이터에서 여행사별 제안 가능한 계획서를 조회하는 API의 응답 시간이 **3817ms**로 사용자 경험에 심각한 영향을 미치는 상황 발생
+- **원인 분석**
+    1. **JPA N+1 문제**: 연관 엔티티(도시, 멤버, 키워드)가 LAZY 로딩으로 설정되어 추가 쿼리가 반복 발생
+    2. **인덱스 부재**: `planning_status` 컬럼에 인덱스가 없어 1000만 건 풀 스캔 발생
+    3. **복잡한 서브쿼리**: `NOT EXISTS` 조건으로 인한 추가적인 성능 저하
 
-### Code Splitting
+**1단계: JPA N+1 문제 해결**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **적용 기법**: `@EntityGraph`와 QueryDSL 조합으로 필요한 연관 데이터를 한 번에 조회
+- **개선 코드**:
 
-### Analyzing the Bundle Size
+![image.png](attachment:56f16713-7380-4ce2-a3d7-d2ea03652a75:image.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+![image.png](attachment:cea83fbe-5a13-41dd-8e2d-626b0d2634b1:image.png)
 
-### Making a Progressive Web App
+- **결과**: 3817ms → 3313ms (**504ms 단축, 13% 성능 향상**)
+- **쿼리 변화**:
+    - 기존: 메인 쿼리 1회 + 연관 데이터 조회를 위한 추가 쿼리 N회
+    - 개선: LEFT JOIN을 활용한 단일 쿼리로 모든 데이터 조회
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+**2단계: 인덱스 최적화**
 
-### Advanced Configuration
+- **문제 식별**: `WHERE planning_status = 'CONFIRMED'` 조건에서 풀 테이블 스캔 발생
+- **적용 기법**: 조회 조건에 맞는 인덱스 설계
+- 
+![image.png](attachment:904d0aff-9354-4344-a503-1526b5cadf3e:image.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **결과**: 3313ms → 247ms (**3066ms 단축, 92% 성능 향상**)
 
-### Deployment
+**최종 성과**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- **전체 성능 향상**: 3817ms → 247ms (**93% 성능 개선**)
 
-### `yarn build` fails to minify
+ **해당 문제 해결 과정을 기술 블로그에 상세히 정리해두었습니다.**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+[블로그 링크: "1000만 건 데이터 쿼리 최적화 - 3.8초에서 0.2초로"](https://gahacman.tistory.com/47)
+
+### 2. 이벤트 기반 자동화 시스템 구축
+
+- **구현 목적**
+사용자 편의성 향상과 시스템 운영 자동화를 위한 이벤트 기반 자동 처리 시스템 구축
+- **자동화 프로세스**
+    1. **여행 계획 생성 시 호스트 자동 참여**: 생성과 동시에 호스트로 자동 등록
+    2. **마감시간 도달 시 자동 상태 변경**: "진행중" → "입찰중" 자동 전환
+    3. **인원 변경 시 실시간 알림**: 모든 참여자에게 실시간 상태 동기화
+
+### 4. 복합키 사용 후 설계 개선
+
+- **실제 개발하면서 마주한 문제점들**
+    - **1. Repository 메서드의 복잡성**
+    - **2. 쿼리 작성 시 불편함**
+    
+![image.png](attachment:a7cc1cf0-1011-495c-929a-f37b52b3db8d:image.png)
+
+![image.png](attachment:76b24438-61f3-49eb-b1fe-bed64ad8c7cd:image.png)
+    
+- **개선과정**
+    - **복합키의 한계점 분석**:
+        - JPA에서 @Embeddable, @EmbeddedId 등 추가 설정 필요
+        - 인덱스 성능: 복합키 순서에 따른 검색 효율성 차이
+        - Repository 사용성 저하로 인한 개발 생산성 감소
+    - **대리키로 개선**:
+        - JPA 표준 패턴 (@Id + @GeneratedValue)
+        - 단일 컬럼 인덱스의 성능 최적화
+        - 다른 엔티티에서 참조 시 단순함
+- **개선 코드**
+
+![image.png](attachment:7fbaca00-86bb-4f41-9c89-3df5643efe45:image.png)
+
+## 기술적 고민
+
+### 1. 실시간 채팅 시스템 설계
+
+**상황**: 여행 계획별로 독립적인 채팅방과 실시간 액션 알림을 모두 지원해야 하는 상황
+
+**고민했던 선택지들**
+
+1. **단일 WebSocket 연결 + 토픽 분리**
+    - 장점: 연결 수 최소화, 서버 리소스 절약
+    - 단점: 메시지 라우팅 복잡도 증가, 불필요한 데이터 전송 가능성
+2. **채팅과 액션별 별도 WebSocket 연결**
+    - 장점: 명확한 관심사 분리, 독립적인 확장 가능
+    - 단점: 클라이언트 연결 수 증가, 복잡한 연결 관리
+3. **HTTP Polling vs Server-Sent Events**
+    - HTTP Polling: 구현 단순하지만 실시간성 부족
+    - SSE: 단방향 통신으로 인한 한계
+
+**최종 선택**: **단일 WebSocket + 채널 분리 전략**
+
+**선택 이유**:
+
+- **실시간성 보장**: HTTP Polling 대비 즉각적인 메시지 전달, 채팅과 액션 알림 모두 실시간 처리 가능
+- **확장성 고려**: 토픽/채널 기반 라우팅으로 새로운 기능 추가 시에도 기존 구조 유지 가능
