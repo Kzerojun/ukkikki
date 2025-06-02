@@ -1,6 +1,6 @@
 # 2. 여행 협업 플랫폼 - Ukkikki
 
-![image 44.png](attachment:8253ca2b-4c5c-42c2-9e51-0b0785c2340b:image_44.png)
+![Image](https://github.com/user-attachments/assets/51514421-6649-4faa-8873-c60602d01a8e)
 
 ## 프로젝트 간단 소개
 
@@ -25,7 +25,7 @@
 
 ## 아키텍처
 
-![image.png](attachment:3cf021ec-0450-4507-8741-186e7cedcc4a:image.png)
+![Image](https://github.com/user-attachments/assets/a878f93a-d29e-422f-946c-8a6b3946c41d)
 
 ## 주요 기능 구현
 
